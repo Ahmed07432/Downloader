@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VidGrabber - Download Videos from Any URL</title>
+    <title>VidGrabber Pro - Download Videos from Any URL</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -31,6 +31,20 @@
                 transform: scale(1);
             }
         }
+        .quality-option {
+            transition: all 0.2s ease;
+        }
+        .quality-option:hover {
+            transform: scale(1.03);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        .spinner {
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
     </style>
 </head>
 <body class="bg-gray-50 min-h-screen">
@@ -40,7 +54,7 @@
             <div class="flex justify-between items-center">
                 <div class="flex items-center space-x-2">
                     <i class="fas fa-play-circle text-3xl"></i>
-                    <span class="text-2xl font-bold">VidGrabber</span>
+                    <span class="text-2xl font-bold">VidGrabber Pro</span>
                 </div>
                 <div class="hidden md:flex space-x-6">
                     <a href="#" class="hover:text-gray-200 transition">Home</a>
@@ -75,11 +89,13 @@
                         >
                         <button 
                             id="downloadBtn"
-                            class="bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 rounded-r-lg font-semibold transition"
+                            class="bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 rounded-r-lg font-semibold transition flex items-center"
                         >
-                            Download
+                            <span id="btnText">Download</span>
+                            <i id="btnSpinner" class="fas fa-spinner spinner ml-2 hidden"></i>
                         </button>
                     </div>
+                    <p id="urlError" class="text-red-500 text-sm mt-2 hidden">Please enter a valid video URL</p>
                 </div>
                 <div id="loading" class="hidden p-4 bg-gray-100">
                     <div class="flex items-center justify-center space-x-2 text-purple-600">
@@ -88,21 +104,54 @@
                     </div>
                 </div>
                 <div id="result" class="hidden p-6 bg-gray-50">
-                    <div class="flex flex-col md:flex-row items-center justify-between">
-                        <div class="flex items-center mb-4 md:mb-0">
+                    <div class="flex flex-col">
+                        <div class="flex items-center mb-6">
                             <div class="w-16 h-16 bg-purple-100 rounded-lg flex items-center justify-center mr-4">
                                 <i class="fas fa-play-circle text-purple-600 text-2xl"></i>
                             </div>
                             <div>
-                                <h3 class="font-bold text-gray-800">Your Video Title</h3>
-                                <p class="text-gray-600 text-sm">MP4 • 1080p • 25MB</p>
+                                <h3 id="videoTitle" class="font-bold text-gray-800">Video Title</h3>
+                                <p id="videoDuration" class="text-gray-600 text-sm">Duration: 0:00</p>
                             </div>
                         </div>
-                        <button class="download-btn bg-green-500 hover:bg-green-600 text-white px-6 py-2 rounded-lg font-semibold flex items-center">
-                            <i class="fas fa-download mr-2"></i> Download Now
-                        </button>
+                        
+                        <h4 class="font-semibold text-gray-700 mb-3">Available Formats:</h4>
+                        <div id="qualityOptions" class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
+                            <!-- Quality options will be inserted here -->
+                        </div>
+                        
+                        <div class="flex justify-between items-center border-t pt-4">
+                            <div class="text-sm text-gray-500">
+                                <i class="fas fa-info-circle mr-1"></i> Downloads may take a few moments to start
+                            </div>
+                            <button id="newDownloadBtn" class="text-purple-600 hover:text-purple-800 font-medium">
+                                <i class="fas fa-redo mr-1"></i> New Download
+                            </button>
+                        </div>
                     </div>
                 </div>
+                <div id="error" class="hidden p-6 bg-red-50">
+                    <div class="flex items-start">
+                        <div class="flex-shrink-0">
+                            <i class="fas fa-exclamation-circle text-red-500 text-2xl mt-1"></i>
+                        </div>
+                        <div class="ml-3">
+                            <h3 class="text-lg font-medium text-red-800" id="errorTitle">Error Processing Video</h3>
+                            <div class="mt-2 text-sm text-red-700">
+                                <p id="errorMessage">There was an issue processing your video URL. Please try again with a different URL.</p>
+                            </div>
+                            <div class="mt-4">
+                                <button id="tryAgainBtn" class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-red-700 bg-red-100 hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
+                                    Try Again
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="mt-8 text-sm text-white opacity-80 max-w-2xl mx-auto">
+                <p><i class="fas fa-exclamation-triangle mr-1"></i> For educational purposes only. Please respect copyright laws and only download videos you have permission to use.</p>
             </div>
         </div>
     </section>
@@ -110,7 +159,7 @@
     <!-- Features Section -->
     <section class="py-16 bg-white">
         <div class="container mx-auto px-4">
-            <h2 class="text-3xl font-bold text-center mb-12 text-gray-800">Why Choose VidGrabber?</h2>
+            <h2 class="text-3xl font-bold text-center mb-12 text-gray-800">Why Choose VidGrabber Pro?</h2>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
                 <div class="bg-gray-50 p-6 rounded-xl shadow-sm hover:shadow-md transition">
                     <div class="w-14 h-14 gradient-bg rounded-full flex items-center justify-center text-white text-2xl mb-4">
@@ -174,11 +223,11 @@
             <div class="space-y-4">
                 <div class="border border-gray-200 rounded-lg overflow-hidden">
                     <button class="faq-toggle w-full text-left p-4 bg-gray-50 hover:bg-gray-100 transition flex justify-between items-center">
-                        <span class="font-medium text-gray-800">Is VidGrabber free to use?</span>
+                        <span class="font-medium text-gray-800">Is VidGrabber Pro free to use?</span>
                         <i class="fas fa-chevron-down transition-transform"></i>
                     </button>
                     <div class="faq-content hidden p-4 bg-white">
-                        <p class="text-gray-600">Yes! VidGrabber is completely free to use with no hidden charges. You can download as many videos as you want without any limitations.</p>
+                        <p class="text-gray-600">Yes! VidGrabber Pro is completely free to use with no hidden charges. You can download as many videos as you want without any limitations.</p>
                     </div>
                 </div>
                 <div class="border border-gray-200 rounded-lg overflow-hidden">
@@ -192,11 +241,11 @@
                 </div>
                 <div class="border border-gray-200 rounded-lg overflow-hidden">
                     <button class="faq-toggle w-full text-left p-4 bg-gray-50 hover:bg-gray-100 transition flex justify-between items-center">
-                        <span class="font-medium text-gray-800">Can I download videos in HD quality?</span>
+                        <span class="font-medium text-gray-800">Why isn't my video downloading?</span>
                         <i class="fas fa-chevron-down transition-transform"></i>
                     </button>
                     <div class="faq-content hidden p-4 bg-white">
-                        <p class="text-gray-600">Absolutely! We support downloading videos in various qualities including 360p, 480p, 720p (HD), 1080p (Full HD), and even 4K when available.</p>
+                        <p class="text-gray-600">There could be several reasons: the video might be private, the website might block downloads, or our service might be temporarily unavailable for that site. Try another video or check back later.</p>
                     </div>
                 </div>
             </div>
@@ -210,7 +259,7 @@
                 <div>
                     <div class="flex items-center space-x-2 mb-4">
                         <i class="fas fa-play-circle text-3xl text-purple-400"></i>
-                        <span class="text-2xl font-bold">VidGrabber</span>
+                        <span class="text-2xl font-bold">VidGrabber Pro</span>
                     </div>
                     <p class="text-gray-400">The fastest and easiest way to download videos from the internet.</p>
                 </div>
@@ -250,32 +299,207 @@
                 </div>
             </div>
             <div class="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400">
-                <p>&copy; 2023 VidGrabber. All rights reserved.</p>
+                <p>&copy; 2023 VidGrabber Pro. All rights reserved. | <a href="#" class="hover:text-white transition">Privacy Policy</a> | <a href="#" class="hover:text-white transition">Terms of Service</a></p>
             </div>
         </div>
     </footer>
 
     <script>
-        // Simple demo functionality
-        document.getElementById('downloadBtn').addEventListener('click', function() {
-            const urlInput = document.getElementById('videoUrl');
-            const loading = document.getElementById('loading');
-            const result = document.getElementById('result');
+        // DOM Elements
+        const urlInput = document.getElementById('videoUrl');
+        const downloadBtn = document.getElementById('downloadBtn');
+        const btnText = document.getElementById('btnText');
+        const btnSpinner = document.getElementById('btnSpinner');
+        const urlError = document.getElementById('urlError');
+        const loading = document.getElementById('loading');
+        const result = document.getElementById('result');
+        const error = document.getElementById('error');
+        const videoTitle = document.getElementById('videoTitle');
+        const videoDuration = document.getElementById('videoDuration');
+        const qualityOptions = document.getElementById('qualityOptions');
+        const newDownloadBtn = document.getElementById('newDownloadBtn');
+        const tryAgainBtn = document.getElementById('tryAgainBtn');
+        const errorTitle = document.getElementById('errorTitle');
+        const errorMessage = document.getElementById('errorMessage');
+
+        // Sample API endpoint (you would replace this with a real API)
+        // Note: This is just for demonstration. You'll need a real backend service.
+        const API_ENDPOINT = 'https://your-video-download-api.com/api/download';
+
+        // Validate URL
+        function isValidUrl(url) {
+            try {
+                new URL(url);
+                return true;
+            } catch (e) {
+                return false;
+            }
+        }
+
+        // Format duration from seconds to HH:MM:SS
+        function formatDuration(seconds) {
+            const h = Math.floor(seconds / 3600);
+            const m = Math.floor(seconds % 3600 / 60);
+            const s = Math.floor(seconds % 3600 % 60);
             
-            if(urlInput.value.trim() === '') {
-                alert('Please enter a video URL');
+            return [h, m > 9 ? m : h ? '0' + m : m || '0', s > 9 ? s : '0' + s]
+                .filter(Boolean)
+                .join(':');
+        }
+
+        // Generate quality options (simulated)
+        function generateQualityOptions() {
+            const qualities = [
+                { quality: '1080p', format: 'MP4', size: '25MB' },
+                { quality: '720p', format: 'MP4', size: '15MB' },
+                { quality: '480p', format: 'MP4', size: '8MB' },
+                { quality: '360p', format: 'MP4', size: '5MB' },
+                { quality: 'Audio', format: 'MP3', size: '3MB' }
+            ];
+
+            qualityOptions.innerHTML = '';
+            
+            qualities.forEach((option, index) => {
+                const optionEl = document.createElement('div');
+                optionEl.className = 'quality-option bg-white border border-gray-200 rounded-lg p-4 cursor-pointer hover:border-purple-300';
+                optionEl.innerHTML = `
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <h4 class="font-medium text-gray-800">${option.quality}</h4>
+                            <p class="text-sm text-gray-500">${option.format} • ${option.size}</p>
+                        </div>
+                        <button class="download-quality-btn bg-purple-600 hover:bg-purple-700 text-white px-3 py-1 rounded text-sm font-medium" data-index="${index}">
+                            Download
+                        </button>
+                    </div>
+                `;
+                qualityOptions.appendChild(optionEl);
+            });
+
+            // Add event listeners to quality buttons
+            document.querySelectorAll('.download-quality-btn').forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    const index = this.getAttribute('data-index');
+                    downloadVideo(qualities[index]);
+                });
+            });
+
+            // Allow clicking anywhere on the option
+            document.querySelectorAll('.quality-option').forEach(option => {
+                option.addEventListener('click', function() {
+                    const btn = this.querySelector('.download-quality-btn');
+                    if (btn) {
+                        const index = btn.getAttribute('data-index');
+                        downloadVideo(qualities[index]);
+                    }
+                });
+            });
+        }
+
+        // Simulate video download
+        function downloadVideo(quality) {
+            // In a real app, this would redirect to the download URL from the API
+            // For demo purposes, we'll just show an alert
+            alert(`Starting download: ${quality.quality} ${quality.format} (${quality.size})\n\nNote: This is a demo. In a real app, the download would start automatically.`);
+            
+            // In a real implementation, you would do something like:
+            // window.location.href = `https://your-api.com/download?url=${encodeURIComponent(urlInput.value)}&quality=${quality.quality}`;
+        }
+
+        // Process video URL
+        async function processVideoUrl() {
+            const url = urlInput.value.trim();
+            
+            // Validate URL
+            if (!url || !isValidUrl(url)) {
+                urlError.classList.remove('hidden');
                 return;
             }
             
-            // Show loading
-            loading.classList.remove('hidden');
-            result.classList.add('hidden');
+            urlError.classList.add('hidden');
+            btnText.textContent = 'Processing...';
+            btnSpinner.classList.remove('hidden');
+            downloadBtn.disabled = true;
             
-            // Simulate processing
-            setTimeout(function() {
+            try {
+                // Show loading state
+                loading.classList.remove('hidden');
+                result.classList.add('hidden');
+                error.classList.add('hidden');
+                
+                // In a real app, you would call your API here
+                // For demo purposes, we'll simulate an API call with setTimeout
+                await new Promise(resolve => setTimeout(resolve, 2000));
+                
+                // Simulate API response
+                const mockResponse = {
+                    success: true,
+                    title: "Sample Video Title",
+                    duration: 125, // in seconds
+                    thumbnail: "https://i.ytimg.com/vi/dQw4w9WgXcQ/maxresdefault.jpg",
+                    formats: [
+                        { quality: '1080p', format: 'MP4', size: '25MB' },
+                        { quality: '720p', format: 'MP4', size: '15MB' },
+                        { quality: '480p', format: 'MP4', size: '8MB' },
+                        { quality: '360p', format: 'MP4', size: '5MB' },
+                        { quality: 'Audio', format: 'MP3', size: '3MB' }
+                    ]
+                };
+                
+                // In a real implementation, you would use the actual API response:
+                // const response = await fetch(`${API_ENDPOINT}?url=${encodeURIComponent(url)}`);
+                // const data = await response.json();
+                
+                // For demo, we'll use our mock response
+                const data = mockResponse;
+                
+                if (data.success) {
+                    // Update video info
+                    videoTitle.textContent = data.title;
+                    videoDuration.textContent = `Duration: ${formatDuration(data.duration)}`;
+                    
+                    // Generate quality options
+                    generateQualityOptions();
+                    
+                    // Show result
+                    loading.classList.add('hidden');
+                    result.classList.remove('hidden');
+                } else {
+                    throw new Error(data.message || 'Failed to process video');
+                }
+            } catch (err) {
+                console.error('Error:', err);
+                errorTitle.textContent = 'Download Error';
+                errorMessage.textContent = err.message || 'There was an error processing your video. Please try again.';
                 loading.classList.add('hidden');
-                result.classList.remove('hidden');
-            }, 2000);
+                error.classList.remove('hidden');
+            } finally {
+                btnText.textContent = 'Download';
+                btnSpinner.classList.add('hidden');
+                downloadBtn.disabled = false;
+            }
+        }
+
+        // Event Listeners
+        downloadBtn.addEventListener('click', processVideoUrl);
+        
+        newDownloadBtn.addEventListener('click', function() {
+            result.classList.add('hidden');
+            urlInput.value = '';
+            urlInput.focus();
+        });
+        
+        tryAgainBtn.addEventListener('click', function() {
+            error.classList.add('hidden');
+            processVideoUrl();
+        });
+        
+        // Allow pressing Enter in the input field
+        urlInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                processVideoUrl();
+            }
         });
         
         // FAQ toggle functionality
